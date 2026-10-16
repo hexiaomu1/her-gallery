@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>她 — 剧照选辑</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #000000;
+    --fg: #ffffff;
+    --muted: #888888;
+    --accent: #e54d42;
+    --accent-blue: #4a90e2;
+    --sidebar-width: 340px;
+    --pad: 40px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--pad) 0 var(--pad) var(--pad);
+    background: var(--bg);
+    z-index: 20;
+    position: relative;
+  }
+
+  .sidebar__content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .chapter {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .title-main {
+    font-family: "Times New Roman", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(72px, 9vw, 120px);
+    line-height: 0.9;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    color: #fff;
+  }
+
+  .divider {
+    width: 56px;
+    height: 2px;
+    background: var(--accent-blue);
+    margin: 8px 0 16px;
+  }
+
+  .desc {
+    font-size: 16px;
+    color: #fff;
+    letter-spacing: 0.08em;
+    line-height: 1.8;
+    font-style: italic;
+    opacity: 0.8;
+  }
+
+  .sidebar__footer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 20px;
+  }
+
+  .footer-info {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .sidebar__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    appearance: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent;
+    color: #fff;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.4);
+  }
+
+  .btn--accent {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn--accent:hover {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .main {
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #333 #000;
+  }
+
+  .main::-webkit-scrollbar { width: 4px; }
+  .main::-webkit-scrollbar-track { background: #000; }
+  .main::-webkit-scrollbar-thumb { background: #333; }
+
+  .empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+    padding: 40px;
+    gap: 24px;
+    color: var(--muted);
+  }
+
+  .empty__title {
+    font-family: "Times New Roman", serif;
+    font-size: 28px;
+    color: #fff;
+    letter-spacing: 0.05em;
+  }
+
+  .empty__desc {
+    font-size: 13px;
+    max-width: 400px;
+    line-height: 1.8;
+  }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 2px;
+    padding: 2px;
+    background: #000;
+    min-height: 100%;
+  }
+
+  .tile {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #111;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .tile.is-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .tile:hover img {
+    transform: scale(1.05);
+  }
+
+  .tile__no {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.1em;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+
+  .tile:hover .tile__no {
+    opacity: 1;
+  }
+
+  .lb {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    background: #000;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .lb[hidden] { display: none; }
+  .lb.is-open { opacity: 1; }
+
+  .lb__sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--pad) 0 var(--pad) var(--pad);
+    z-index: 10;
+    background: #000;
+  }
+
+  .lb__sidebar .chapter { margin-bottom: 8px; }
+
+  .lb__sidebar .title-main {
+    font-size: 80px;
+    margin-top: 0;
+    margin-bottom: 4px;
+  }
+
+  .lb__sidebar .desc {
+    font-size: 14px;
+    opacity: 0.7;
+  }
+
+  .lb__footer {
+    padding-bottom: 20px;
+  }
+
+  .lb__footer-text {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .lb__stage {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 40px 60px 20px;
+    min-width: 0;
+  }
+
+  .lb__img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.8);
+    opacity: 0;
+    transform: scale(0.98);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .lb__img.is-ready {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .lb__top-counter {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+    color: #fff;
+    letter-spacing: 0.1em;
+    font-variant-numeric: tabular-nums;
+    z-index: 15;
+    opacity: 0.8;
+  }
+
+  .lb__close {
+    position: absolute;
+    top: 26px;
+    left: 26px;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    z-index: 15;
+    opacity: 0.7;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .lb__close:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+  }
+
+  .lb__progress-wrap {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.1);
+    z-index: 15;
+  }
+
+  .lb__progress-bar {
+    height: 100%;
+    background: var(--accent-blue);
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  .lb__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 15;
+    opacity: 0;
+    transition: opacity 0.3s, background 0.3s;
+  }
+
+  .lb__stage:hover .lb__nav {
+    opacity: 1;
+  }
+
+  .lb__nav:hover {
+    background: rgba(0,0,0,0.8);
+  }
+
+  .lb__nav--prev { left: 20px; }
+  .lb__nav--next { right: 20px; }
+
+  .lb__play {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+    padding: 6px 16px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .lb__play:hover {
+    border-color: rgba(255,255,255,0.6);
+    color: #fff;
+  }
+
+  .lb__play.is-on {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .drop {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: grid;
+    place-items: center;
+    background: rgba(0,0,0,0.85);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .drop.is-active {
+    opacity: 1;
+  }
+
+  .drop__inner {
+    text-align: center;
+    color: #fff;
+  }
+
+  .drop__icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: var(--accent);
+  }
+
+  .drop__text {
+    font-size: 16px;
+    letter-spacing: 0.1em;
+  }
+
+  .busy {
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 16px;
+    background: rgba(0,0,0,0.9);
+  }
+
+  .busy[hidden] { display: none; }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .busy p {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translate(-50%, 10px);
+    background: rgba(20,20,20,0.95);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 10px 24px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 500;
+  }
+
+  .toast.is-on {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  @media (max-width: 900px) {
+    :root {
+      --sidebar-width: 100%;
+      --pad: 20px;
+    }
+
+    .app {
+      flex-direction: column;
+    }
+
+    .sidebar {
+      width: 100%;
+      height: auto;
+      padding: 24px 20px;
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar__content {
+      gap: 4px;
+    }
+
+    .title-main {
+      font-size: 42px;
+    }
+
+    .desc {
+      font-size: 13px;
+    }
+
+    .sidebar__footer {
+      padding-bottom: 0;
+      align-items: flex-end;
+    }
+
+    .footer-info {
+      display: none;
+    }
+
+    .main {
+      height: calc(100vh - 120px);
+    }
+
+    .gallery {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .lb {
+      flex-direction: column;
+    }
+
+    .lb__sidebar {
+      width: 100%;
+      height: auto;
+      padding: 20px;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .lb__sidebar .chapter,
+    .lb__sidebar .desc,
+    .lb__sidebar .divider,
+    .lb__footer {
+      display: none;
+    }
+
+    .lb__sidebar .title-main {
+      font-size: 32px;
+      color: #fff;
+    }
+
+    .lb__stage {
+      padding: 60px 10px 80px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .lb__top-counter {
+      top: 24px;
+      font-size: 14px;
+    }
+
+    .lb__close {
+      top: 18px;
+      left: 18px;
+      width: 36px;
+      height: 36px;
+      font-size: 24px;
+    }
+
+    .lb__nav {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+    .tile { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar__content">
+        <div class="chapter">CHAPTER 01 · HER · 2026</div>
+        <h1 class="title-main">她</h1>
+        <div class="divider"></div>
+        <div class="desc">"for her"</div>
+      </div>
+      <div class="sidebar__footer">
+        <div class="footer-info" id="countLabel">暂无图片</div>
+        <div class="sidebar__actions">
+          <button class="btn btn--accent" id="btnImport" type="button">导入图片</button>
+          <button class="btn" id="btnClear" type="button">清空</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main" id="mainScroll">
+      <div class="empty" id="empty">
+        <div class="empty__title">把剧照放进来</div>
+        <div class="empty__desc">
+          拖拽图片到窗口，或点击左侧“导入图片”选择文件/文件夹。<br>
+          图片会保存在本地浏览器，刷新不会丢失。
+        </div>
+      </div>
+      <div class="gallery" id="gallery" hidden></div>
+    </main>
+  </div>
+
+  <div class="lb" id="lightbox" hidden role="dialog" aria-modal="true">
+    <div class="lb__sidebar">
+      <div class="sidebar__content">
+        <div class="chapter">CHAPTER 01 · HER · 2026</div>
+        <h1 class="title-main">她</h1>
+        <div class="divider"></div>
+        <div class="desc">"for her"</div>
+      </div>
+      <div class="lb__footer">
+        <div class="lb__footer-text">HER · 剧照选辑</div>
+      </div>
+    </div>
+
+    <div class="lb__stage" id="lbStage">
+      <div class="lb__top-counter" id="lbCounter">0 / 0</div>
+      <button class="lb__close" id="lbClose" type="button" aria-label="关闭">✕</button>
+      <img class="lb__img" id="lbImg" alt="">
+      <button class="lb__nav lb__nav--prev" id="lbPrev" type="button" aria-label="上一张">‹</button>
+      <button class="lb__nav lb__nav--next" id="lbNext" type="button" aria-label="下一张">›</button>
+      <button class="lb__play" id="lbPlay" type="button">自动播放</button>
+    </div>
+
+    <div class="lb__progress-wrap">
+      <div class="lb__progress-bar" id="lbProgress"></div>
+    </div>
+  </div>
+
+  <div class="drop" id="drop">
+    <div class="drop__inner">
+      <div class="drop__icon">↓</div>
+      <div class="drop__text">松手，导入剧照</div>
+    </div>
+  </div>
+
+  <div class="busy" id="busy" hidden>
+    <div class="spinner"></div>
+    <p id="busyText">正在导入…</p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <input type="file" id="fileInput" accept="image/*" multiple hidden>
+  <input type="file" id="folderInput" accept="image/*" multiple webkitdirectory directory hidden>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+
+  const els = {
+    empty: $('#empty'),
+    gallery: $('#gallery'),
+    countLabel: $('#countLabel'),
+    btnImport: $('#btnImport'),
+    btnClear: $('#btnClear'),
+    fileInput: $('#fileInput'),
+    folderInput: $('#folderInput'),
+    mainScroll: $('#mainScroll'),
+    lb: $('#lightbox'),
+    lbStage: $('#lbStage'),
+    lbImg: $('#lbImg'),
+    lbCounter: $('#lbCounter'),
+    lbPrev: $('#lbPrev'),
+    lbNext: $('#lbNext'),
+    lbClose: $('#lbClose'),
+    lbPlay: $('#lbPlay'),
+    lbProgress: $('#lbProgress'),
+    drop: $('#drop'),
+    busy: $('#busy'),
+    busyText: $('#busyText'),
+    toast: $('#toast'),
+  };
+
+  const state = { items: [], current: 0 };
+  let slideTimer = null;
+  let lbCloseTimer = null;
+
+  const naturalCompare = (a, b) =>
+    String(a).localeCompare(String(b), 'zh-Hans-CN', { numeric: true, sensitivity: 'base' });
+
+  let toastTimer = null;
+  function toast(msg) {
+    els.toast.textContent = msg;
+    els.toast.classList.add('is-on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => els.toast.classList.remove('is-on'), 2400);
+  }
+
+  function setBusy(on, text) {
+    els.busy.hidden = !on;
+    if (text) els.busyText.textContent = text;
+  }
+
+  const DB_NAME = 'her-gallery-v3';
+  const STORE = 'images';
+  let dbPromise = null;
+
+  function getDB() {
+    if (!dbPromise) {
+      dbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(STORE)) {
+            db.createObjectStore(STORE, { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    return dbPromise;
+  }
+
+  async function dbGetAll() {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const t = db.transaction(STORE, 'readonly');
+      const req = t.objectStore(STORE).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function dbPutMany(records) {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const t = db.transaction(STORE, 'readwrite');
+      const store = t.objectStore(STORE);
+      records.forEach(r => store.put(r));
+      t.oncomplete = () => resolve();
+      t.onerror = () => reject(t.error);
+      t.onabort = () => reject(t.error);
+    });
+  }
+
+  async function dbClear() {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const t = db.transaction(STORE, 'readwrite');
+      t.objectStore(STORE).clear();
+      t.oncomplete = () => resolve();
+      t.onerror = () => reject(t.error);
+    });
+  }
+
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist().catch(() => {});
+  }
+
+  async function loadFromDB() {
+    const rows = await dbGetAll();
+
+    const byName = new Map();
+    for (const r of rows) {
+      const prev = byName.get(r.name);
+      if (!prev || (r.lastModified || 0) > (prev.lastModified || 0)) {
+        byName.set(r.name, r);
+      }
+    }
+
+    const list = [...byName.values()].sort((a, b) => {
+      const c = naturalCompare(a.name, b.name);
+      return c !== 0 ? c : (a.lastModified || 0) - (b.lastModified || 0);
+    });
+
+    state.items.forEach(it => { try { URL.revokeObjectURL(it.url); } catch (e) {} });
+
+    state.items = list.map(r => ({
+      id: r.id,
+      name: r.name,
+      url: URL.createObjectURL(r.blob),
+    }));
+
+    state.current = 0;
+    render();
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const i = Number(el.dataset.index) || 0;
+        el.style.transitionDelay = `${(i % 12) * 30}ms`;
+        el.classList.add('is-in');
+        io.unobserve(el);
+      }
+    }
+  }, { rootMargin: '300px 0px' });
+
+  function render() {
+    const has = state.items.length > 0;
+
+    els.empty.hidden = has;
+    els.gallery.hidden = !has;
+    els.countLabel.textContent = has ? `${state.items.length} Frames` : '暂无图片';
+
+    els.gallery.textContent = '';
+    if (!has) return;
+
+    const frag = document.createDocumentFragment();
+
+    state.items.forEach((item, i) => {
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.dataset.index = String(i);
+
+      const img = document.createElement('img');
+      img.src = item.url;
+      img.alt = item.name;
+      img.loading = i < 20 ? 'eager' : 'lazy';
+      img.decoding = 'async';
+
+      const no = document.createElement('span');
+      no.className = 'tile__no';
+      no.textContent = String(i + 1).padStart(3, '0');
+
+      tile.append(img, no);
+      frag.appendChild(tile);
+    });
+
+    els.gallery.appendChild(frag);
+    els.gallery.querySelectorAll('.tile').forEach(el => io.observe(el));
+  }
+
+  const toRecord = (file) => ({
+    id: `${file.name}__${file.size}__${file.lastModified || 0}`,
+    name: file.name,
+    size: file.size,
+    lastModified: file.lastModified || 0,
+    blob: file,
+  });
+
+  async function importFiles(fileList) {
+    const files = [...(fileList || [])].filter(f => f && f.type && f.type.startsWith('image/'));
+
+    if (!files.length) {
+      toast('没有找到图片文件');
+      return;
+    }
+
+    files.sort((a, b) => naturalCompare(a.name, b.name));
+
+    setBusy(true, `正在导入 ${files.length} 张…`);
+
+    try {
+      const BATCH = 20;
+      for (let i = 0; i < files.length; i += BATCH) {
+        const slice = files.slice(i, i + BATCH);
+        await dbPutMany(slice.map(toRecord));
+        els.busyText.textContent = `正在导入 ${Math.min(i + BATCH, files.length)} / ${files.length}…`;
+        await new Promise(r => setTimeout(r, 0));
+      }
+      await loadFromDB();
+      toast(`已导入 ${files.length} 张剧照`);
+    } catch (err) {
+      console.error(err);
+      toast('导入失败，请重试');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function updateLB() {
+    const item = state.items[state.current];
+    if (!item) return;
+
+    const img = els.lbImg;
+    img.classList.remove('is-ready');
+    img.onload = () => img.classList.add('is-ready');
+    img.onerror = () => img.classList.add('is-ready');
+    img.src = item.url;
+    img.alt = item.name;
+    if (img.complete) img.classList.add('is-ready');
+
+    els.lbCounter.innerHTML = `<b>${state.current + 1}</b> / ${state.items.length}`;
+
+    const pct = ((state.current + 1) / state.items.length) * 100;
+    els.lbProgress.style.width = pct + '%';
+
+    [-1, 1].forEach(d => {
+      const n = state.items[state.current + d];
+      if (n) { const p = new Image(); p.src = n.url; }
+    });
+  }
+
+  function openLightbox(index) {
+    if (!state.items.length) return;
+    clearTimeout(lbCloseTimer);
+
+    state.current = Math.max(0, Math.min(index, state.items.length - 1));
+    updateLB();
+
+    els.lb.hidden = false;
+    requestAnimationFrame(() => els.lb.classList.add('is-open'));
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    els.lb.classList.remove('is-open');
+    document.body.style.overflow = '';
+    stopSlideshow();
+
+    clearTimeout(lbCloseTimer);
+    lbCloseTimer = setTimeout(() => { els.lb.hidden = true; }, 400);
+  }
+
+  function nextImg() {
+    if (!state.items.length) return;
+    state.current = (state.current + 1) % state.items.length;
+    updateLB();
+  }
+
+  function prevImg() {
+    if (!state.items.length) return;
+    state.current = (state.current - 1 + state.items.length) % state.items.length;
+    updateLB();
+  }
+
+  function startSlideshow() {
+    if (slideTimer) return;
+    els.lbPlay.classList.add('is-on');
+    els.lbPlay.textContent = '暂停';
+    slideTimer = setInterval(nextImg, 3400);
+  }
+
+  function stopSlideshow() {
+    if (!slideTimer) return;
+    clearInterval(slideTimer);
+    slideTimer = null;
+    els.lbPlay.classList.remove('is-on');
+    els.lbPlay.textContent = '自动播放';
+  }
+
+  function toggleSlideshow() {
+    slideTimer ? stopSlideshow() : startSlideshow();
+  }
+
+  els.gallery.addEventListener('click', (e) => {
+    const tile = e.target.closest('.tile');
+    if (!tile) return;
+    openLightbox(Number(tile.dataset.index));
+  });
+
+  els.btnImport.addEventListener('click', () => els.fileInput.click());
+  els.fileInput.addEventListener('change', async (e) => {
+    const files = e.target.files;
+    if (files && files.length) await importFiles(files);
+    e.target.value = '';
+  });
+  els.folderInput.addEventListener('change', async (e) => {
+    const files = e.target.files;
+    if (files && files.length) await importFiles(files);
+    e.target.value = '';
+  });
+
+  els.btnClear.addEventListener('click', async () => {
+    if (!state.items.length) { toast('还没有图片'); return; }
+    if (!confirm(`确定要清空全部 ${state.items.length} 张图片吗？`)) return;
+    await dbClear();
+    await loadFromDB();
+    toast('已清空');
+  });
+
+  els.lbPrev.addEventListener('click', (e) => { e.stopPropagation(); prevImg(); });
+  els.lbNext.addEventListener('click', (e) => { e.stopPropagation(); nextImg(); });
+  els.lbClose.addEventListener('click', closeLightbox);
+  els.lbPlay.addEventListener('click', toggleSlideshow);
+
+  els.lbStage.addEventListener('click', (e) => {
+    if (e.target === els.lbStage || e.target === els.lbImg) closeLightbox();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (els.lb.hidden) return;
+
+    switch (e.key) {
+      case 'ArrowRight': e.preventDefault(); nextImg(); break;
+      case 'ArrowLeft':  e.preventDefault(); prevImg(); break;
+      case 'Escape':     e.preventDefault(); closeLightbox(); break;
+      case 'Home':       e.preventDefault(); state.current = 0; updateLB(); break;
+      case 'End':        e.preventDefault(); state.current = state.items.length - 1; updateLB(); break;
+      case ' ':
+        e.preventDefault();
+        toggleSlideshow();
+        break;
+    }
+  });
+
+  let touchStartX = 0, touchStartY = 0;
+  els.lbStage.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+    touchStartY = e.changedTouches[0].clientY;
+  }, { passive: true });
+
+  els.lbStage.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 52 && Math.abs(dx) > Math.abs(dy)) {
+      dx < 0 ? nextImg() : prevImg();
+    }
+  }, { passive: true });
+
+  let dragDepth = 0;
+  const hasFiles = (e) => {
+    const t = e.dataTransfer && e.dataTransfer.types;
+    if (!t) return false;
+    return Array.prototype.indexOf.call(t, 'Files') !== -1;
+  };
+
+  window.addEventListener('dragenter', (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth++;
+    els.drop.classList.add('is-active');
+  });
+
+  window.addEventListener('dragover', (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+  });
+
+  window.addEventListener('dragleave', (e) => {
+    if (!hasFiles(e)) return;
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) els.drop.classList.remove('is-active');
+  });
+
+  window.addEventListener('drop', async (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth = 0;
+    els.drop.classList.remove('is-active');
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) await importFiles(files);
+  });
+
+  loadFromDB().catch((err) => {
+    console.error(err);
+    toast('读取本地图片失败');
+    render();
+  });
+
+})();
+</script>
+</body>
+</html>
